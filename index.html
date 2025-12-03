@@ -209,7 +209,7 @@
 
                 // Exibe o 2º ônibus (sutil)
                 if (secondNextBus) {
-                    const secondInfoText = `(Próximo após: ${secondNextBus.lineName} em ${secondNextBus.minutesUntilDeparture} min)`;
+                    const secondInfoText = `(Depois desse vai sair o: ${secondNextBus.lineName} em ${secondNextBus.minutesUntilDeparture} min)`;
                     nextBusAfterEl.textContent = secondInfoText;
                 } else {
                     nextBusAfterEl.textContent = "(Não há outro ônibus listado após este.)";
