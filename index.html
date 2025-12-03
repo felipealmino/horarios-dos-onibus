@@ -56,7 +56,7 @@
 <body>
 
     <!-- CABEÇALHO PRINCIPAL -->
-    <h1>Qual Ônibus Pegar?</h1>
+    <h1>Cheguei, e agora?</h1>
 
     <!-- EXIBIÇÃO DO HORÁRIO ATUAL -->
     <p>Horário Atual do Dispositivo:</p>
@@ -203,7 +203,7 @@
             // 5. ATUALIZA A INTERFACE DO USUÁRIO
             if (nextBus) {
                 // Exibe o 1º ônibus (o mais próximo)
-                const infoText = `O próximo ônibus a sair será o ${nextBus.lineName}, em ${nextBus.minutesUntilDeparture} minutos. Se dirija à plataforma.`;
+                const infoText = `O próximo ônibus a sair será o ${nextBus.lineName}, em ${nextBus.minutesUntilDeparture} minutos.`;
                 busInfoTextEl.textContent = infoText;
                 platformDisplayEl.textContent = nextBus.platform; // Destaque para a plataforma
 
