@@ -38,6 +38,13 @@
             display: block; 
             margin: 20px auto; 
         }
+        /* ESTILO PARA INFORMAÇÃO SUTIL DO SEGUNDO ÔNIBUS */
+        .subtle-info {
+            font-size: 0.9em; /* Fonte um pouco menor */
+            color: #AAAAAA; /* Cinza claro e discreto */
+            margin-top: 10px;
+            min-height: 20px; /* Garante que o espaço não mude se o texto estiver vazio */
+        }
         /* ESTILO PARA O DISCLAMER SUTIL */
         #disclaimer-text {
             font-size: 0.75em; /* Tamanho pequeno */
@@ -63,6 +70,9 @@
         <p>Plataforma Recomendada:</p>
         <div id="platform-display" class="platform-box">XX</div>
     
+    <!-- NOVO: Informação Sutil do Ônibus Seguinte -->
+    <p id="next-bus-after" class="subtle-info"></p>
+
     <!-- BOTÃO DE AÇÃO -->
     <button id="refresh-button">Calcular e Atualizar</button>
 
@@ -104,6 +114,8 @@
         const busInfoTextEl = document.getElementById('bus-info-text');
         const platformDisplayEl = document.getElementById('platform-display');
         const refreshButton = document.getElementById('refresh-button');
+        // NOVO: Elemento para o segundo ônibus
+        const nextBusAfterEl = document.getElementById('next-bus-after'); 
 
         // =================================================================
         // BLOCO 2: FUNÇÕES AUXILIARES
@@ -139,9 +151,12 @@
             const minuteFormatted = String(currentMinute).padStart(2, '0');
             currentTimeEl.textContent = `${hourFormatted}:${minuteFormatted}`;
 
-            // Variáveis para rastrear o melhor resultado
-            let nextBus = null; // Armazenará as informações do próximo ônibus
-            let minTimeDifference = Infinity; // Inicializa com um valor muito grande
+            // Variáveis para rastrear os dois melhores resultados
+            let nextBus = null;           // O ônibus mais próximo (1º)
+            let minTimeDifference = Infinity; // O menor tempo restante (1º)
+
+            let secondNextBus = null;     // O segundo ônibus mais próximo (2º)
+            let secondMinTimeDifference = Infinity; // O segundo menor tempo restante (2º)
 
             // 2. LAÇO DE REPETIÇÃO: Itera sobre TODAS as linhas de ônibus
             BUS_SCHEDULE.forEach(line => {
@@ -153,20 +168,30 @@
                     // 3. LÓGICA CONDICIONAL: Verifica se o horário já passou hoje
                     if (busTotalMinutes > currentTotalMinutes) {
                         // CASO A: Ônibus futuro no MESMO dia.
-                        // Diferença = Horário do ônibus - Horário atual
                         timeDifference = busTotalMinutes - currentTotalMinutes;
                     } else {
                         // CASO B: Ônibus já passou ou é horário da madrugada (00:xx).
-                        // CÁLCULO DE VIRADA DE DIA (1440 minutos = 24 horas):
-                        // Diferença = (Minutos restantes até 23:59) + (Minutos do horário de partida no dia seguinte)
                         timeDifference = (1440 - currentTotalMinutes) + busTotalMinutes;
                     }
 
-                    // 4. LÓGICA CONDICIONAL: Compara o resultado com o melhor encontrado até agora
+                    // 4. LÓGICA CONDICIONAL: Compara o resultado com os dois melhores encontrados
                     if (timeDifference < minTimeDifference) {
-                        // Se o tempo restante for menor, ATUALIZA o melhor resultado
+                        // Se for o novo MELHOR (mais próximo):
+                        // O antigo 'min' vira 'secondMin'
+                        secondMinTimeDifference = minTimeDifference;
+                        secondNextBus = nextBus;
+                        
+                        // Atualiza o novo 'min'
                         minTimeDifference = timeDifference;
                         nextBus = {
+                            lineName: line.name,
+                            platform: line.platform,
+                            minutesUntilDeparture: timeDifference
+                        };
+                    } else if (timeDifference < secondMinTimeDifference && timeDifference !== minTimeDifference) {
+                        // Se não for o melhor, mas for melhor que o segundo melhor:
+                        secondMinTimeDifference = timeDifference;
+                        secondNextBus = {
                             lineName: line.name,
                             platform: line.platform,
                             minutesUntilDeparture: timeDifference
@@ -177,14 +202,23 @@
 
             // 5. ATUALIZA A INTERFACE DO USUÁRIO
             if (nextBus) {
-                // Se um ônibus foi encontrado:
+                // Exibe o 1º ônibus (o mais próximo)
                 const infoText = `O próximo ônibus a sair será o ${nextBus.lineName}, em ${nextBus.minutesUntilDeparture} minutos. Se dirija à plataforma.`;
                 busInfoTextEl.textContent = infoText;
                 platformDisplayEl.textContent = nextBus.platform; // Destaque para a plataforma
+
+                // Exibe o 2º ônibus (sutil)
+                if (secondNextBus) {
+                    const secondInfoText = `(Próximo após: ${secondNextBus.lineName} em ${secondNextBus.minutesUntilDeparture} min)`;
+                    nextBusAfterEl.textContent = secondInfoText;
+                } else {
+                    nextBusAfterEl.textContent = "(Não há outro ônibus listado após este.)";
+                }
             } else {
-                // Se a tabela estiver vazia ou houver erro (não deve acontecer com horários 00:xx)
+                // Caso não encontre nenhum ônibus
                 busInfoTextEl.textContent = "Erro: Nenhuma linha de ônibus encontrada.";
                 platformDisplayEl.textContent = "--";
+                nextBusAfterEl.textContent = "";
             }
         }
 
