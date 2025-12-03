@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horário de Ônibus Simples</title>
+    <!-- Importa a fonte moderna 'Inter' do Google Fonts, que é limpa e similar à Helvetica/Arial. -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- CSS BÁSICO: Apenas o estritamente necessário para funcionalidade e legibilidade. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif; /* Fonte limpa e moderna 'Inter' */
+            margin: 20px;
+            background-color: #1a1a1a; /* Fundo escuro */
+            color: #ffffff; /* Texto principal branco/claro */
+            text-align: center;
+        }
+        /* O título ainda deve ter uma cor que destaque no fundo escuro */
+        h1 { color: #87CEFA; /* Azul Claro para destacar */ } 
+        .platform-box {
+            background-color: #1A4B84; /* Cor de destaque azul escuro para a plataforma */
+            color: #FFD700; /* <--- MUDANÇA: Texto Amarelo Vívido para alto contraste */
+            padding: 20px 30px; /* AUMENTADO: Mais espaçamento interno */
+            border-radius: 8px;
+            font-size: 32px; /* AUMENTADO: Fonte maior para destaque */
+            font-weight: bold;
+            display: inline-block;
+            margin: 15px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #1A4B84; /* Botão Azul Escuro */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: block; 
+            margin: 20px auto; 
+        }
+        /* ESTILO PARA O DISCLAMER SUTIL */
+        #disclaimer-text {
+            font-size: 0.75em; /* Tamanho pequeno */
+            color: #888;      /* Cinza claro e sutil */
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CABEÇALHO PRINCIPAL -->
+    <h1>Cheguei, e agora?</h1>
+
+    <!-- EXIBIÇÃO DO HORÁRIO ATUAL -->
+    <p>Horário Atual do Dispositivo:</p>
+    <p id="current-time" style="font-size: 36px; font-weight: bold;">--:--</p>
+
+    <!-- RESULTADO DO CÁLCULO (A FRASE PRINCIPAL) -->
+    
+        <p id="bus-info-text">Clique no botão para iniciar o cálculo.</p>
+
+        <!-- PLACA DA PLATAFORMA EM DESTAQUE -->
+        <p>Se dirija à plataforma:</p>
+        <div id="platform-display" class="platform-box">XX</div>
+    
+    <!-- BOTÃO DE AÇÃO -->
+    <button id="refresh-button">Calcular e Atualizar</button>
+
+    <!-- DISCLAMER SUTIL -->
+    <p id="disclaimer-text">Desenvolvido por Felipe Almino usando HTML5, CSS e JavaScript</p>
+
+    <!-- INÍCIO DO CÓDIGO JAVASCRIPT -->
+    <script>
+        // =================================================================
+        // BLOCO 1: DADOS E CONFIGURAÇÃO
+        // =================================================================
+
+        // Tabela de horários: Este array (lista) contém todas as linhas.
+        // Cada item é um objeto com o nome, a plataforma e uma lista de horários.
+        const BUS_SCHEDULE = [
+            // Jardim Paulista Baixo (Linha 1931) - Plataforma 11
+            { 
+                name: "Jardim Paulista Baixo (1931)", 
+                platform: "11", 
+                times: ["04:28", "04:43", "04:56", "05:08", "05:20", "05:32", "05:44", "05:58", "06:13", "06:28", "06:43", "06:58", "07:13", "07:28", "07:43", "07:58", "08:18", "08:38", "09:03", "09:28", "09:53", "10:18", "10:43", "11:08", "11:33", "11:53", "12:10", "12:27", "12:44", "13:01", "13:20", "13:40", "14:05", "14:30", "14:55", "15:20", "15:45", "16:10", "16:35", "16:55", "17:17", "17:34", "17:51", "18:08", "18:25", "18:42", "18:59", "19:16", "19:35", "19:55", "20:15", "20:40", "21:05", "21:30", "21:55", "22:20", "22:50", "23:15", "23:50", "00:30"] 
+            },
+            
+            // Jardim Paulista Alto (Linha 1932) - Plataforma 12
+            { 
+                name: "Jardim Paulista Alto (1932)", 
+                platform: "12", 
+                times: ["04:15", "04:40", "05:00", "05:20", "05:33", "05:46", "06:02", "06:15", "06:31", "06:47", "07:03", "07:19", "07:35", "07:51", "08:07", "08:23", "08:39", "08:56", "09:18", "09:38", "10:03", "10:28", "10:53", "11:18", "11:43", "12:08", "12:33", "12:53", "13:10", "13:27", "13:44", "14:03", "14:28", "14:48", "15:13", "15:33", "15:58", "16:27", "16:52", "17:17", "17:42", "18:07", "18:28", "18:53", "19:13", "19:38", "19:57", "20:22", "21:02", "21:42", "22:20", "23:00", "23:40", "00:25"] 
+            },
+            
+            // Mirueira (Linha 1943) - Plataforma 13
+            { 
+                name: "Mirueira (1943)", 
+                platform: "13", 
+                times: ["04:00", "04:20", "04:40", "05:05", "05:25", "05:50", "06:06", "06:24", "06:47", "07:00", "07:25", "07:40", "08:05", "08:20", "08:45", "09:10", "09:45", "10:10", "10:40", "11:10", "11:35", "12:05", "12:30", "12:45", "13:15", "13:30", "13:55", "14:15", "14:45", "15:20", "15:50", "16:15", "16:50", "17:10", "17:35", "18:00", "18:15", "18:40", "19:00", "19:25", "19:40", "20:00", "20:20", "20:50", "21:10", "21:40", "22:10", "22:35", "23:05", "23:40", "00:05", "00:30", "01:00"] 
+            }
+        ];
+
+        // Mapeamento dos elementos do HTML para variáveis JavaScript
+        const currentTimeEl = document.getElementById('current-time');
+        const busInfoTextEl = document.getElementById('bus-info-text');
+        const platformDisplayEl = document.getElementById('platform-display');
+        const refreshButton = document.getElementById('refresh-button');
+
+        // =================================================================
+        // BLOCO 2: FUNÇÕES AUXILIARES
+        // =================================================================
+
+        /**
+         * FUNÇÃO: Converte um horário (string "HH:MM") para o total de minutos desde a meia-noite.
+         * Esta conversão facilita todos os cálculos de diferença de tempo.
+         */
+        function timeToMinutes(timeString) {
+            // Separa a string "HH:MM" em hora e minuto (ex: "10:30" vira [10, 30])
+            const [hour, minute] = timeString.split(':').map(Number);
+            // Retorna o total de minutos (ex: 10*60 + 30 = 630 minutos)
+            return (hour * 60) + minute;
+        }
+
+        // =================================================================
+        // BLOCO 3: LÓGICA PRINCIPAL DO CÁLCULO
+        // =================================================================
+
+        /**
+         * FUNÇÃO PRINCIPAL: Calcula o próximo ônibus mais próximo.
+         */
+        function calculateNextBus() {
+            // 1. OBTÉM O HORÁRIO ATUAL DO DISPOSITIVO
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            const currentTotalMinutes = timeToMinutes(`${currentHour}:${currentMinute}`); // Minutos totais de agora
+
+            // Formata o horário atual para exibição (REMOVIDO: padStart para simplificar o código)
+            const hourFormatted = String(currentHour); 
+            const minuteFormatted = String(currentMinute);
+            currentTimeEl.textContent = `${hourFormatted}:${minuteFormatted}`;
+
+            // Variáveis para rastrear o melhor resultado
+            let nextBus = null; // Armazenará as informações do próximo ônibus
+            let minTimeDifference = Infinity; // Inicializa com um valor muito grande
+
+            // 2. LAÇO DE REPETIÇÃO: Itera sobre TODAS as linhas de ônibus
+            BUS_SCHEDULE.forEach(line => {
+                // LAÇO INTERNO: Itera sobre TODOS os horários de partida dessa linha
+                line.times.forEach(timeString => {
+                    const busTotalMinutes = timeToMinutes(timeString);
+                    let timeDifference; // Diferença de tempo em minutos
+
+                    // 3. LÓGICA CONDICIONAL: Verifica se o horário já passou hoje
+                    if (busTotalMinutes > currentTotalMinutes) {
+                        // CASO A: Ônibus futuro no MESMO dia.
+                        // Diferença = Horário do ônibus - Horário atual
+                        timeDifference = busTotalMinutes - currentTotalMinutes;
+                    } else {
+                        // CASO B: Ônibus já passou ou é horário da madrugada (00:xx).
+                        // CÁLCULO DE VIRADA DE DIA (1440 minutos = 24 horas):
+                        // Diferença = (Minutos restantes até 23:59) + (Minutos do horário de partida no dia seguinte)
+                        timeDifference = (1440 - currentTotalMinutes) + busTotalMinutes;
+                    }
+
+                    // 4. LÓGICA CONDICIONAL: Compara o resultado com o melhor encontrado até agora
+                    if (timeDifference < minTimeDifference) {
+                        // Se o tempo restante for menor, ATUALIZA o melhor resultado
+                        minTimeDifference = timeDifference;
+                        nextBus = {
+                            lineName: line.name,
+                            platform: line.platform,
+                            minutesUntilDeparture: timeDifference
+                        };
+                    }
+                });
+            });
+
+            // 5. ATUALIZA A INTERFACE DO USUÁRIO
+            if (nextBus) {
+                // Se um ônibus foi encontrado:
+                const infoText = `O próximo ônibus a sair será o ${nextBus.lineName}, em ${nextBus.minutesUntilDeparture} minutos.`;
+                busInfoTextEl.textContent = infoText;
+                platformDisplayEl.textContent = nextBus.platform; // Destaque para a plataforma
+            } else {
+                // Se a tabela estiver vazia ou houver erro (não deve acontecer com horários 00:xx)
+                busInfoTextEl.textContent = "Erro: Nenhuma linha de ônibus encontrada.";
+                platformDisplayEl.textContent = "--";
+            }
+        }
+
+        // =================================================================
+        // BLOCO 4: INICIALIZAÇÃO DO APP E LISTENERS
+        // =================================================================
+
+        // Espera a página carregar completamente antes de executar o código JS
+        window.onload = () => {
+            // Chama a função principal assim que o app é carregado
+            calculateNextBus(); 
+            
+            // Adiciona um "ouvinte de evento" ao botão
+            // Quando o botão é clicado, a função calculateNextBus() é chamada.
+            refreshButton.addEventListener('click', calculateNextBus);
+        };
+
+    </script>
+</body>
+</html>
